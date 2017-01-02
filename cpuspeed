@@ -1,0 +1,178 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+__license__ = """
+CPUSpeed (C)left 2008-2016, Heiko 'riot' Weinen <riot@c-base.org>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+And don't you point any lawyers at me!
+Send me a postcard, if you like this software.
+"""
+
+import gtk
+import gobject
+import argparse
+
+
+# TODO:
+# - variable GHz/MHz
+# - variable readout of the kernel's freq-data
+# - nicer bargraphs (I'm looking at a cairo-solution involving gradients -
+# easy to do)
+# - menu-interface (right click anywhere to have a nice menu including a
+# configuration dialog... that involves:
+# - storing preferences )
+# - history of the recorded frequencies
+# - portability checks - does the beast run everywhere? Nokia N810 e.g.?
+# - various display modes to fast-switch between
+# ... NAME it! You win a beer with me if your feature gets implemented ;)
+
+class CPUSpeed:
+    def destroy(self, widget, data=None):
+        """
+        Closes down the application
+
+        :param widget:
+        :param data:
+        :return:
+        """
+        gobject.source_remove(self.reader)
+        gtk.main_quit()
+
+    def __init__(self, args, parser):
+        """
+        Sets up the window, configuration and events.
+
+        :param args: arguments parsed by parser
+        :param parser: argparse.parser
+        """
+        self.maximum = args.max * args.basefreq
+        self.medhigh = args.medhigh * args.basefreq
+        self.medlow = args.medlow * args.basefreq
+        self.minimum = args.low * args.basefreq
+        self.cpucount = args.count
+        self.refreshinterval = args.refresh
+
+        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+
+        self.reader = gobject.timeout_add(self.refreshinterval, self.read)
+
+        #        self.window.connect("delete_event", self.delete_event)
+        self.window.connect("destroy", self.destroy)
+
+        self.window.set_border_width(2)
+        self.window.set_opacity(0.25)
+
+        self.cputable = gtk.Table(2, self.cpucount + 1, True)
+        self.window.add(self.cputable)
+
+        self.speedfreq = gtk.Label("N/A")
+        self.speedlabel = gtk.Label("AVERAGE")
+
+        self.cputable.attach(self.speedfreq, 0, 1, 0, 1)
+        self.cputable.attach(self.speedlabel, 0, 1, 1, 2)
+
+        self.cpulabels = []
+        self.eventboxes = []
+
+        for cpunumber in range(self.cpucount):
+            cpufreq = gtk.Label("N/A")
+            cpulabel = gtk.Label("CPU%i" % cpunumber)
+            eventbox = gtk.EventBox()
+            eventbox.add(cpufreq)
+            self.cputable.attach(cpulabel, cpunumber + 1, cpunumber + 2, 1, 2)
+            self.cputable.attach(eventbox, cpunumber + 1, cpunumber + 2, 0, 1)
+
+            self.cpulabels.append(cpufreq)
+            self.eventboxes.append(eventbox)
+            eventbox.show()
+            cpufreq.show()
+            cpulabel.show()
+
+        self.speedfreq.show()
+        self.speedlabel.show()
+        self.cputable.show()
+        self.window.show()
+
+    def read(self):
+        """
+        Reads out the kernel frequency scaler current value table,
+        colorizes the bars and displays the frequencies accordingly.
+        """
+        speed = 0
+
+        for cpunumber in range(self.cpucount):
+            cpuname = "/sys/devices/system/cpu/cpu%i/cpufreq" \
+                      "/scaling_cur_freq" % cpunumber
+            cpufile = open(cpuname)
+            clock = int(cpufile.read().rstrip("\n")) / 1000
+            self.cpulabels[cpunumber].set_text(str(clock))
+            if clock <= self.minimum:
+                color = gtk.gdk.Color(0, 65535, 0)
+            elif (clock > self.minimum) and (clock < self.medlow):
+                color = gtk.gdk.Color(32768, 65535, 0)
+            elif (clock > self.medlow) and (clock < self.medhigh):
+                color = gtk.gdk.Color(65535, 65535, 0)
+            elif (clock > self.medhigh) and (clock < self.maximum):
+                color = gtk.gdk.Color(65535, 32768, 0)
+            else:
+                color = gtk.gdk.Color(65535, 0, 0)
+
+            self.eventboxes[cpunumber].modify_bg(gtk.STATE_NORMAL, color)
+            speed += clock
+
+        speed = speed / self.cpucount
+
+        self.speedfreq.set_text(str(speed))
+        return True
+
+    def main(self):
+        """
+        Runs the GTK main loop
+        """
+        gtk.main()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--count", "-c", help="Specifiy number of cores to "
+                                              "inspect (4)",
+                        default=4, type=int)
+
+    parser.add_argument("--basefreq", "-b", help="Base frequency (1000)",
+                        default=1000, type=int)
+
+    parser.add_argument("--max", "-m", help="Maximum frequency multiplier "
+                                            "red (4)",
+                        default=4, type=float)
+    parser.add_argument("--medhigh", "-mh",
+                        help="Medium high frequency multiplier orange (3)",
+                        default=3,
+                        type=float)
+    parser.add_argument("--medlow", "-ml",
+                        help="Medium low frequency multiplier yellow (2)",
+                        default=2,
+                        type=float)
+    parser.add_argument("--low", "-l",
+                        help="Lowest frequency multiplier green (0.8)",
+                        default=0.8, type=float)
+    parser.add_argument("--refresh", "-r", help="Refresh interval [ms] (1000)",
+                        default=1000, type=int)
+    args = parser.parse_args()
+
+    cpuspeed = CPUSpeed(args, parser)
+    cpuspeed.main()
