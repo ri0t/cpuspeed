@@ -27,19 +27,6 @@ import gobject
 import argparse
 
 
-# TODO:
-# - variable GHz/MHz
-# - variable readout of the kernel's freq-data
-# - nicer bargraphs (I'm looking at a cairo-solution involving gradients -
-# easy to do)
-# - menu-interface (right click anywhere to have a nice menu including a
-# configuration dialog... that involves:
-# - storing preferences )
-# - history of the recorded frequencies
-# - portability checks - does the beast run everywhere? Nokia N810 e.g.?
-# - various display modes to fast-switch between
-# ... NAME it! You win a beer with me if your feature gets implemented ;)
-
 class CPUSpeed:
     def destroy(self, widget, data=None):
         """
