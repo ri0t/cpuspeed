@@ -26,7 +26,7 @@
 from setuptools import setup
 
 setup(name="cpuspeed",
-      version="1.0",
+      version="2.0",
       description="cpuspeed displays your cpu core speed settings (using "
                   "only good old gtk2 for now)",
       author="Heiko 'riot' Weinen",
@@ -43,5 +43,7 @@ each core with properly background coloured cells.
 
 See https://github.com/ri0t/cpuspeed""",
       install_requires=[
+          "gobject",
+          "click"
       ]
       )
