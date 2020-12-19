@@ -208,7 +208,7 @@ class CPUSpeed:
     "--no-labels",
     "-n",
     default=False,
-    type=bool,
+    is_flag=True,
     help="Omit text labels for a neat widget",
 )
 def cpuspeed(**args):
