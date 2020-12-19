@@ -76,6 +76,9 @@ class CPUSpeed:
             self.cputable.attach(self.speedfreq, 0, 1, 0, 1)
             self.cputable.attach(self.speedlabel, 0, 1, 1, 2)
 
+        self.minimal_frequency = 9999
+        self.maximal_frequency = 0000
+
         self.cpulabels = []
         self.eventboxes = []
 
@@ -113,7 +116,11 @@ class CPUSpeed:
                       "/scaling_cur_freq" % cpunumber
             cpufile = open(cpuname)
             clock = int(cpufile.read().rstrip("\n")) / 1000
-            self.cpulabels[cpunumber].set_text(str(clock))
+            self.minimum_frequency = min(self.minimum, clock)
+            self.maximum_frequency = max(self.maximum, clock)
+
+            if not self.no_labels:
+                self.cpulabels[cpunumber].set_text(str(clock))
             if clock <= self.minimum:
                 color = gtk.gdk.Color(0, 65535, 0)
             elif (clock > self.minimum) and (clock < self.medlow):
@@ -131,7 +138,7 @@ class CPUSpeed:
         speed = speed / self.cpucount
 
         if not self.no_labels:
-            self.speedfreq.set_text("%i\n%i\n%i" % (speed, self.minimum, self.maximum))
+            self.speedfreq.set_text("%i\n%i\n%i" % (speed, self.minimum_frequency, self.maximum_frequency))
         return True
 
     def main(self):
