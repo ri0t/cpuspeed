@@ -150,10 +150,8 @@ class CPUSpeed:
 @click.option("--count", "-c", help="Specifiy number of cores to "
                                           "inspect (12)",
                     default=12, type=int)
-
 @click.option("--base-frequency", "-b", help="Base frequency (1000)",
                     default=1000, type=int)
-
 @click.option("--max-frequency", "-m", help="Maximum frequency multiplier "
                                         "red (4.5)",
                     default=4.5, type=float)
@@ -172,37 +170,11 @@ class CPUSpeed:
                     default=1000, type=int)
 @click.option("--no-labels", "-n", default=False, type=bool)
 def cpuspeed(**args):
-    cpuspeed = CPUSpeed(**args)
-    cpuspeed.main()
+    """CPU Speed display - GTK based"""
+
+    cpuspeed_component = CPUSpeed(**args)
+    cpuspeed_component.main()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--count", "-c", help="Specifiy number of cores to "
-                                              "inspect (4)",
-                        default=4, type=int)
-
-    parser.add_argument("--basefreq", "-b", help="Base frequency (1000)",
-                        default=1000, type=int)
-
-    parser.add_argument("--max", "-m", help="Maximum frequency multiplier "
-                                            "red (4)",
-                        default=4, type=float)
-    parser.add_argument("--medhigh", "-mh",
-                        help="Medium high frequency multiplier orange (3)",
-                        default=3,
-                        type=float)
-    parser.add_argument("--medlow", "-ml",
-                        help="Medium low frequency multiplier yellow (2)",
-                        default=2,
-                        type=float)
-    parser.add_argument("--low", "-l",
-                        help="Lowest frequency multiplier green (0.8)",
-                        default=0.8, type=float)
-    parser.add_argument("--refresh", "-r", help="Refresh interval [ms] (1000)",
-                        default=1000, type=int)
-    args = parser.parse_args()
-
-    cpuspeed = CPUSpeed(args, parser)
-    cpuspeed.main()
+    cpuspeed()
