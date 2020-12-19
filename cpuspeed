@@ -48,13 +48,13 @@ class CPUSpeed:
         self.medium_high = medium_high * base_frequency
         self.medium_low = medium_low * base_frequency
         self.minimum = low * base_frequency
-        self.cpucount = count
-        self.refreshinterval = refresh
+        self.cpu_count = count
+        self.refresh_interval = refresh
         self.no_labels = no_labels
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 
-        self.reader = gobject.timeout_add(self.refreshinterval, self.read)
+        self.reader = gobject.timeout_add(self.refresh_interval, self.read)
 
         #        self.window.connect("delete_event", self.delete_event)
         self.window.connect("destroy", self.destroy)
@@ -62,44 +62,44 @@ class CPUSpeed:
         self.window.set_border_width(2)
         self.window.set_opacity(0.25)
 
-        tableheight = 1 if self.no_labels else 2
-        labelspace = 0 if self.no_labels else 1
-        self.cputable = gtk.Table(tableheight, self.cpucount + labelspace, True)
-        self.window.add(self.cputable)
+        table_height = 1 if self.no_labels else 2
+        label_space = 0 if self.no_labels else 1
+        self.cpu_table = gtk.Table(table_height, self.cpu_count + label_space, True)
+        self.window.add(self.cpu_table)
 
 
         if not self.no_labels:
-            self.speedfreq = gtk.Label("N/A")
-            self.speedlabel = gtk.Label("AVG")
-            self.cputable.attach(self.speedfreq, 0, 1, 0, 1)
-            self.cputable.attach(self.speedlabel, 0, 1, 1, 2)
+            self.speed_frequency = gtk.Label("N/A")
+            self.speed_label = gtk.Label("AVG")
+            self.cpu_table.attach(self.speed_frequency, 0, 1, 0, 1)
+            self.cpu_table.attach(self.speed_label, 0, 1, 1, 2)
 
         self.minimal_frequency = 9999
         self.maximal_frequency = 0000
 
-        self.cpulabels = []
-        self.eventboxes = []
+        self.cpu_labels = []
+        self.event_boxes = []
 
-        for cpunumber in range(self.cpucount):
-            cpufreq = gtk.Label(" ")
-            eventbox = gtk.EventBox()
-            eventbox.add(cpufreq)
+        for cpu_number in range(self.cpu_count):
+            cpu_freq = gtk.Label(" ")
+            event_box = gtk.EventBox()
+            event_box.add(cpu_freq)
 
             if not self.no_labels:
-                cpulabel = gtk.Label("%i" % cpunumber)
-                self.cputable.attach(cpulabel, cpunumber + labelspace, cpunumber + 2, 1, 2)
-                self.cpulabels.append(cpufreq)
-                cpulabel.show()
+                cpu_label = gtk.Label("%i" % cpu_number)
+                self.cpu_table.attach(cpu_label, cpu_number + label_space, cpu_number + 2, 1, 2)
+                self.cpu_labels.append(cpu_freq)
+                cpu_label.show()
             
-            self.cputable.attach(eventbox, cpunumber + labelspace, cpunumber + 2, 0, 1)
-            self.eventboxes.append(eventbox)
-            eventbox.show()
-            cpufreq.show()
+            self.cpu_table.attach(event_box, cpu_number + label_space, cpu_number + 2, 0, 1)
+            self.event_boxes.append(event_box)
+            event_box.show()
+            cpu_freq.show()
 
         if not self.no_labels:
-            self.speedfreq.show()
-            self.speedlabel.show()
-        self.cputable.show()
+            self.speed_frequency.show()
+            self.speed_label.show()
+        self.cpu_table.show()
         self.window.show()
 
     def read(self):
@@ -109,34 +109,34 @@ class CPUSpeed:
         """
         speed = 0
 
-        for cpunumber in range(self.cpucount):
-            cpuname = "/sys/devices/system/cpu/cpu%i/cpufreq" \
-                      "/scaling_cur_freq" % cpunumber
-            cpufile = open(cpuname)
-            clock = int(cpufile.read().rstrip("\n")) / 1000
-            self.minimum_frequency = min(self.minimum, clock)
-            self.maximum_frequency = max(self.maximum, clock)
+        for cpu_number in range(self.cpu_count):
+            cpu_name = "/sys/devices/system/cpu/cpu%i/cpufreq" \
+                      "/scaling_cur_freq" % cpu_number
+            cpu_file = open(cpu_name)
+            clock = int(cpu_file.read().rstrip("\n")) / 1000
+            self.minimal_frequency = min(self.minimum, clock)
+            self.maximal_frequency = max(self.maximum, clock)
 
             if not self.no_labels:
-                self.cpulabels[cpunumber].set_text(str(clock))
+                self.cpu_labels[cpu_number].set_text(str(clock))
             if clock <= self.minimum:
                 color = gtk.gdk.Color(0, 65535, 0)
-            elif (clock > self.minimum) and (clock < self.medlow):
+            elif (clock > self.minimum) and (clock < self.medium_low):
                 color = gtk.gdk.Color(32768, 65535, 0)
-            elif (clock > self.medlow) and (clock < self.medhigh):
+            elif (clock > self.medium_low) and (clock < self.medium_high):
                 color = gtk.gdk.Color(65535, 65535, 0)
-            elif (clock > self.medhigh) and (clock < self.maximum):
+            elif (clock > self.medium_high) and (clock < self.maximum):
                 color = gtk.gdk.Color(65535, 32768, 0)
             else:
                 color = gtk.gdk.Color(65535, 0, 0)
 
-            self.eventboxes[cpunumber].modify_bg(gtk.STATE_NORMAL, color)
+            self.event_boxes[cpu_number].modify_bg(gtk.STATE_NORMAL, color)
             speed += clock
 
-        speed = speed / self.cpucount
+        speed = speed / self.cpu_count
 
         if not self.no_labels:
-            self.speedfreq.set_text("%i\n%i\n%i" % (speed, self.minimum_frequency, self.maximum_frequency))
+            self.speed_frequency.set_text("%i\n%i\n%i" % (speed, self.minimal_frequency, self.maximal_frequency))
         return True
 
     def main(self):
