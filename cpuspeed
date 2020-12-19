@@ -24,7 +24,7 @@ Send me a postcard, if you like this software.
 
 import gtk
 import gobject
-import argparse
+import click
 
 
 class CPUSpeed:
@@ -46,12 +46,13 @@ class CPUSpeed:
         :param args: arguments parsed by parser
         :param parser: argparse.parser
         """
-        self.maximum = args.max * args.basefreq
-        self.medhigh = args.medhigh * args.basefreq
-        self.medlow = args.medlow * args.basefreq
-        self.minimum = args.low * args.basefreq
-        self.cpucount = args.count
-        self.refreshinterval = args.refresh
+        self.maximum = max_frequency * base_frequency
+        self.medium_high = medium_high * base_frequency
+        self.medium_low = medium_low * base_frequency
+        self.minimum = low * base_frequency
+        self.cpucount = count
+        self.refreshinterval = refresh
+        self.no_labels = no_labels
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 
@@ -63,34 +64,40 @@ class CPUSpeed:
         self.window.set_border_width(2)
         self.window.set_opacity(0.25)
 
-        self.cputable = gtk.Table(2, self.cpucount + 1, True)
+        tableheight = 1 if self.no_labels else 2
+        labelspace = 0 if self.no_labels else 1
+        self.cputable = gtk.Table(tableheight, self.cpucount + labelspace, True)
         self.window.add(self.cputable)
 
-        self.speedfreq = gtk.Label("N/A")
-        self.speedlabel = gtk.Label("AVERAGE")
 
-        self.cputable.attach(self.speedfreq, 0, 1, 0, 1)
-        self.cputable.attach(self.speedlabel, 0, 1, 1, 2)
+        if not self.no_labels:
+            self.speedfreq = gtk.Label("N/A")
+            self.speedlabel = gtk.Label("AVG")
+            self.cputable.attach(self.speedfreq, 0, 1, 0, 1)
+            self.cputable.attach(self.speedlabel, 0, 1, 1, 2)
 
         self.cpulabels = []
         self.eventboxes = []
 
         for cpunumber in range(self.cpucount):
-            cpufreq = gtk.Label("N/A")
-            cpulabel = gtk.Label("CPU%i" % cpunumber)
+            cpufreq = gtk.Label(" ")
             eventbox = gtk.EventBox()
             eventbox.add(cpufreq)
-            self.cputable.attach(cpulabel, cpunumber + 1, cpunumber + 2, 1, 2)
-            self.cputable.attach(eventbox, cpunumber + 1, cpunumber + 2, 0, 1)
 
-            self.cpulabels.append(cpufreq)
+            if not self.no_labels:
+                cpulabel = gtk.Label("%i" % cpunumber)
+                self.cputable.attach(cpulabel, cpunumber + labelspace, cpunumber + 2, 1, 2)
+                self.cpulabels.append(cpufreq)
+                cpulabel.show()
+            
+            self.cputable.attach(eventbox, cpunumber + labelspace, cpunumber + 2, 0, 1)
             self.eventboxes.append(eventbox)
             eventbox.show()
             cpufreq.show()
-            cpulabel.show()
 
-        self.speedfreq.show()
-        self.speedlabel.show()
+        if not self.no_labels:
+            self.speedfreq.show()
+            self.speedlabel.show()
         self.cputable.show()
         self.window.show()
 
@@ -123,7 +130,8 @@ class CPUSpeed:
 
         speed = speed / self.cpucount
 
-        self.speedfreq.set_text(str(speed))
+        if not self.no_labels:
+            self.speedfreq.set_text("%i\n%i\n%i" % (speed, self.minimum, self.maximum))
         return True
 
     def main(self):
