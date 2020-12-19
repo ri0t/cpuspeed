@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
-__license__ = """
+"""
 CPUSpeed (C)left 2008-2016, Heiko 'riot' Weinen <riot@c-base.org>
 
 This program is free software: you can redistribute it and/or modify
@@ -155,7 +154,8 @@ class CPUSpeed:
             )
         return True
 
-    def main(self):
+    @staticmethod
+    def main():
         """
         Runs the GTK main loop
         """
