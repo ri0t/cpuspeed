@@ -79,7 +79,7 @@ class CPUSpeed:
 
         if not self.no_labels:
             self.speed_frequency = gtk.Label("N/A")
-            self.speed_label = gtk.Label("AVG")
+            self.speed_label = gtk.Label("AVG\nMIN\nMAX")
             self.cpu_table.attach(self.speed_frequency, 0, 1, 0, 1)
             self.cpu_table.attach(self.speed_label, 0, 1, 1, 2)
 
