@@ -39,12 +39,10 @@ class CPUSpeed:
         gobject.source_remove(self.reader)
         gtk.main_quit()
 
-    def __init__(self, args, parser):
+    def __init__(self, count, base_frequency, max_frequency, medium_high, medium_low, low, refresh, no_labels):
         """
         Sets up the window, configuration and events.
 
-        :param args: arguments parsed by parser
-        :param parser: argparse.parser
         """
         self.maximum = max_frequency * base_frequency
         self.medium_high = medium_high * base_frequency
@@ -146,6 +144,36 @@ class CPUSpeed:
         Runs the GTK main loop
         """
         gtk.main()
+
+
+@click.command()
+@click.option("--count", "-c", help="Specifiy number of cores to "
+                                          "inspect (12)",
+                    default=12, type=int)
+
+@click.option("--base-frequency", "-b", help="Base frequency (1000)",
+                    default=1000, type=int)
+
+@click.option("--max-frequency", "-m", help="Maximum frequency multiplier "
+                                        "red (4.5)",
+                    default=4.5, type=float)
+@click.option("--medium-high", "-mh",
+                    help="Medium high frequency multiplier orange (3)",
+                    default=3,
+                    type=float)
+@click.option("--medium-low", "-ml",
+                    help="Medium low frequency multiplier yellow (2)",
+                    default=2.9,
+                    type=float)
+@click.option("--low", "-l",
+                    help="Lowest frequency multiplier green (0.8)",
+                    default=1.8, type=float)
+@click.option("--refresh", "-r", help="Refresh interval [ms] (1000)",
+                    default=1000, type=int)
+@click.option("--no-labels", "-n", default=False, type=bool)
+def cpuspeed(**args):
+    cpuspeed = CPUSpeed(**args)
+    cpuspeed.main()
 
 
 if __name__ == "__main__":
