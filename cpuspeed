@@ -39,7 +39,17 @@ class CPUSpeed:
         gobject.source_remove(self.reader)
         gtk.main_quit()
 
-    def __init__(self, count, base_frequency, max_frequency, medium_high, medium_low, low, refresh, no_labels):
+    def __init__(
+        self,
+        count,
+        base_frequency,
+        max_frequency,
+        medium_high,
+        medium_low,
+        low,
+        refresh,
+        no_labels,
+    ):
         """
         Sets up the window, configuration and events.
 
@@ -67,7 +77,6 @@ class CPUSpeed:
         self.cpu_table = gtk.Table(table_height, self.cpu_count + label_space, True)
         self.window.add(self.cpu_table)
 
-
         if not self.no_labels:
             self.speed_frequency = gtk.Label("N/A")
             self.speed_label = gtk.Label("AVG")
@@ -87,11 +96,15 @@ class CPUSpeed:
 
             if not self.no_labels:
                 cpu_label = gtk.Label("%i" % cpu_number)
-                self.cpu_table.attach(cpu_label, cpu_number + label_space, cpu_number + 2, 1, 2)
+                self.cpu_table.attach(
+                    cpu_label, cpu_number + label_space, cpu_number + 2, 1, 2
+                )
                 self.cpu_labels.append(cpu_freq)
                 cpu_label.show()
-            
-            self.cpu_table.attach(event_box, cpu_number + label_space, cpu_number + 2, 0, 1)
+
+            self.cpu_table.attach(
+                event_box, cpu_number + label_space, cpu_number + 2, 0, 1
+            )
             self.event_boxes.append(event_box)
             event_box.show()
             cpu_freq.show()
@@ -110,8 +123,9 @@ class CPUSpeed:
         speed = 0
 
         for cpu_number in range(self.cpu_count):
-            cpu_name = "/sys/devices/system/cpu/cpu%i/cpufreq" \
-                      "/scaling_cur_freq" % cpu_number
+            cpu_name = (
+                "/sys/devices/system/cpu/cpu%i/cpufreq" "/scaling_cur_freq" % cpu_number
+            )
             cpu_file = open(cpu_name)
             clock = int(cpu_file.read().rstrip("\n")) / 1000
             self.minimal_frequency = min(self.minimum, clock)
@@ -136,7 +150,9 @@ class CPUSpeed:
         speed = speed / self.cpu_count
 
         if not self.no_labels:
-            self.speed_frequency.set_text("%i\n%i\n%i" % (speed, self.minimal_frequency, self.maximal_frequency))
+            self.speed_frequency.set_text(
+                "%i\n%i\n%i" % (speed, self.minimal_frequency, self.maximal_frequency)
+            )
         return True
 
     def main(self):
@@ -147,30 +163,56 @@ class CPUSpeed:
 
 
 @click.command()
-@click.option("--count", "-c", help="Specifiy number of cores to "
-                                          "inspect (12)",
-                    default=12, type=int)
-@click.option("--base-frequency", "-b", help="Base frequency (1000)",
-                    default=1000, type=int)
-@click.option("--max-frequency", "-m", help="Maximum frequency multiplier "
-                                        "red (4.5)",
-                    default=4.5, type=float)
-@click.option("--medium-high", "-mh",
-                    help="Medium high frequency multiplier orange (3)",
-                    default=3,
-                    type=float)
-@click.option("--medium-low", "-ml",
-                    help="Medium low frequency multiplier yellow (2)",
-                    default=2.9,
-                    type=float)
-@click.option("--low", "-l",
-                    help="Lowest frequency multiplier green (0.8)",
-                    default=1.8, type=float)
-@click.option("--refresh", "-r", help="Refresh interval [ms] (1000)",
-                    default=1000, type=int)
-@click.option("--no-labels", "-n", default=False, type=bool)
+@click.option(
+    "--count",
+    "-c",
+    help="Specifiy number of cores to " "inspect (12)",
+    default=12,
+    type=int,
+)
+@click.option(
+    "--base-frequency", "-b", help="Base frequency (1000)", default=1000, type=int
+)
+@click.option(
+    "--max-frequency",
+    "-m",
+    help="Maximum frequency multiplier " "red (4.5)",
+    default=4.5,
+    type=float,
+)
+@click.option(
+    "--medium-high",
+    "-mh",
+    help="Medium high frequency multiplier orange (3)",
+    default=3,
+    type=float,
+)
+@click.option(
+    "--medium-low",
+    "-ml",
+    help="Medium low frequency multiplier yellow (2)",
+    default=2.9,
+    type=float,
+)
+@click.option(
+    "--low",
+    "-l",
+    help="Lowest frequency multiplier green (0.8)",
+    default=1.8,
+    type=float,
+)
+@click.option(
+    "--refresh", "-r", help="Refresh interval [ms] (1000)", default=1000, type=int
+)
+@click.option(
+    "--no-labels",
+    "-n",
+    default=False,
+    type=bool,
+    help="Omit text labels for a neat widget",
+)
 def cpuspeed(**args):
-    """CPU Speed display - GTK based"""
+    """CPU Speed display - GTK based cpu frequency monitor"""
 
     cpuspeed_component = CPUSpeed(**args)
     cpuspeed_component.main()
